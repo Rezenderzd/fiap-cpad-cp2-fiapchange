@@ -1,4 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Modal, FlatList, Switch } from 'react-native';
+// 1. ADICIONEI ESTES IMPORTS: KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard
+import { 
+  View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Modal, FlatList, Switch, 
+  KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard 
+} from 'react-native';
 import React, { useState, useContext } from 'react';
 import { useRouter } from 'expo-router';
 import { AppContext } from './provider.js';
@@ -85,90 +89,104 @@ export default function Home() {
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: isDarkMode ? '#000' : '#fff'}]}>
-      <Switch
-        value = {isDarkMode}
-        onValueChange={toggleSwitchDarkMode}
-        style={styles.switch}
-      />
-      <View style={styles.containerPerguntas}>
-        <View style={styles.blocoPergunta}>
-          <Text style={styles.pergunta}>Nome:</Text>
-          <TextInput 
-            placeholder="Seu nome" 
-            placeholderTextColor= '#fff' 
-            style={styles.input} 
-            onChangeText={setNome} 
-            value={nome} 
+    // 2. ENVOLVI TUDO COM KEYBOARDAVOIDINGVIEW
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* 3. ADICIONEI O SCROLLVIEW PARA PERMITIR ROLAGEM E O TOUCHABLE PARA FECHAR O TECLADO AO CLICAR FORA */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={[styles.container, {backgroundColor: isDarkMode ? '#000' : '#fff', flexGrow: 1}]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Switch
+            value = {isDarkMode}
+            onValueChange={toggleSwitchDarkMode}
+            style={styles.switch}
           />
-        </View>
-
-        <View style={styles.blocoPergunta}>
-          <Text style={styles.pergunta}>Sala Atual:</Text>
-          <TouchableOpacity style={styles.seletor} onPress={() => abrirSelecao('atual')}>
-            <Text style={styles.seletorTexto}>{salaAtual ? salaAtual.sala.toUpperCase() : "Selecionar sala..."}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.blocoPergunta}>
-          <Text style={styles.pergunta}>Sala Destino:</Text>
-          <TouchableOpacity style={styles.seletor} onPress={() => abrirSelecao('destino')}>
-            <Text style={styles.seletorTexto}>{salaDestino ? salaDestino.sala.toUpperCase() : "Selecionar sala..."}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.blocoPergunta}>
-          <Text style={styles.pergunta}>Motivo da Troca:</Text>
-          <TextInput 
-            placeholder="Explique o motivo" 
-            placeholderTextColor= '#fff' 
-            style={[styles.input, { height: 60 }]} 
-            onChangeText={setMotivo} 
-            value={motivo} 
-            multiline={true}
-          />
-        </View>
-
-        <View style={styles.campoBotoes}>
-          <TouchableOpacity style={styles.botaoApagar} onPress={apagarDados}>
-            <Text style={styles.botaoTexto}>Apagar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.botaoEnviar} onPress={enviarDados}>
-            <Text style={styles.botaoTexto}>Enviar</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={{ marginTop: 20 }} onPress={() => router.push('/salas')}>
-          <Text style={styles.pergunta}>Ver lista de salas →</Text>
-        </TouchableOpacity>
-
-        <Modal visible={modalVisible} animationType="slide" transparent={true}>
-          <View style={styles.modalContainer}>
-            <View style={[styles.modalConteudo, {backgroundColor: isDarkMode? '#000': '#fff'}]}>
-              <Text style={styles.modalTitulo}>Escolha a Sala</Text>
-              <FlatList
-                data={salas}
-                keyExtractor={(item) => item.sala}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.itemSala} onPress={() => selecionarSala(item)}>
-                    <Text style={styles.itemTexto}>{item.sala.toUpperCase()}</Text>
-                    <Text style={styles.itemVagas}>{item.vagas} vagas</Text>
-                  </TouchableOpacity>
-                )}
+          <View style={styles.containerPerguntas}>
+            <View style={styles.blocoPergunta}>
+              <Text style={styles.pergunta}>Nome:</Text>
+              <TextInput 
+                placeholder="Seu nome" 
+                placeholderTextColor= '#fff' 
+                style={styles.input} 
+                onChangeText={setNome} 
+                value={nome} 
               />
-              <TouchableOpacity style={styles.botaoFechar} onPress={() => setModalVisible(false)}>
-                <Text style={styles.botaoTextoFechar}>Fechar</Text>
+            </View>
+
+            <View style={styles.blocoPergunta}>
+              <Text style={styles.pergunta}>Sala Atual:</Text>
+              <TouchableOpacity style={styles.seletor} onPress={() => abrirSelecao('atual')}>
+                <Text style={styles.seletorTexto}>{salaAtual ? salaAtual.sala.toUpperCase() : "Selecionar sala..."}</Text>
               </TouchableOpacity>
             </View>
+
+            <View style={styles.blocoPergunta}>
+              <Text style={styles.pergunta}>Sala Destino:</Text>
+              <TouchableOpacity style={styles.seletor} onPress={() => abrirSelecao('destino')}>
+                <Text style={styles.seletorTexto}>{salaDestino ? salaDestino.sala.toUpperCase() : "Selecionar sala..."}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.blocoPergunta}>
+              <Text style={styles.pergunta}>Motivo da Troca:</Text>
+              <TextInput 
+                placeholder="Explique o motivo" 
+                placeholderTextColor= '#fff' 
+                style={[styles.input, { height: 60 }]} 
+                onChangeText={setMotivo} 
+                value={motivo} 
+                multiline={true}
+              />
+            </View>
+
+            <View style={styles.campoBotoes}>
+              <TouchableOpacity style={styles.botaoApagar} onPress={apagarDados}>
+                <Text style={styles.botaoTexto}>Apagar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.botaoEnviar} onPress={enviarDados}>
+                <Text style={styles.botaoTexto}>Enviar</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={{ marginTop: 20, marginBottom: 40 }} onPress={() => router.push('/salas')}>
+              <Text style={styles.pergunta}>Ver lista de salas →</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </View>
-    </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+
+      {/* O Modal permanece fora do ScrollView principal */}
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalConteudo, {backgroundColor: isDarkMode? '#000': '#fff'}]}>
+            <Text style={styles.modalTitulo}>Escolha a Sala</Text>
+            <FlatList
+              data={salas}
+              keyExtractor={(item) => item.sala}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.itemSala} onPress={() => selecionarSala(item)}>
+                  <Text style={styles.itemTexto}>{item.sala.toUpperCase()}</Text>
+                  <Text style={styles.itemVagas}>{item.vagas} vagas</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity style={styles.botaoFechar} onPress={() => setModalVisible(false)}>
+              <Text style={styles.botaoTextoFechar}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', paddingTop: 30 },
+  // ALTERAÇÃO: Removi o flex: 1 do container pois agora o ScrollView cuida do crescimento com flexGrow
+  container: { alignItems: 'center', paddingTop: 30 },
   switch:{ position: 'absolute', top: 40, right: 20 },
   containerPerguntas:{marginTop: 50},
   blocoPergunta: { marginBottom: 15, gap: 5 },
