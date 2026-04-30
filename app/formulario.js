@@ -1,4 +1,3 @@
-// 1. ADICIONEI ESTES IMPORTS: KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard
 import { 
   View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Modal, FlatList, Switch, 
   KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard 
@@ -89,12 +88,10 @@ export default function Home() {
   };
 
   return (
-    // 2. ENVOLVI TUDO COM KEYBOARDAVOIDINGVIEW
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* 3. ADICIONEI O SCROLLVIEW PARA PERMITIR ROLAGEM E O TOUCHABLE PARA FECHAR O TECLADO AO CLICAR FORA */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView 
           contentContainerStyle={[styles.container, {backgroundColor: isDarkMode ? '#000' : '#fff', flexGrow: 1}]}
@@ -159,7 +156,6 @@ export default function Home() {
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      {/* O Modal permanece fora do ScrollView principal */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={[styles.modalConteudo, {backgroundColor: isDarkMode? '#000': '#fff'}]}>
@@ -185,7 +181,6 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  // ALTERAÇÃO: Removi o flex: 1 do container pois agora o ScrollView cuida do crescimento com flexGrow
   container: { alignItems: 'center', paddingTop: 30 },
   switch:{ position: 'absolute', top: 40, right: 20 },
   containerPerguntas:{marginTop: 50},
