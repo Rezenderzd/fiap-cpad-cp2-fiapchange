@@ -71,7 +71,7 @@ export const AppProvider = ({ children }) => {
         setSalas((prev) => {
             const novasSalas = prev.map((item) =>
                 item.sala.toUpperCase().includes(salaDigitada.toUpperCase().trim())
-                    ? { ...item, vagas: item.vagas - 1 }
+                    ?{ ...item, vagas: Math.max(0, item.vagas - 1) }
                     : item
             );
             salvarSalas(novasSalas); 

@@ -1,10 +1,10 @@
 import {
   View, Text, TouchableOpacity, StyleSheet, Alert, Modal,
-  FlatList, Switch, KeyboardAvoidingView, Platform, ScrollView,
+  FlatList, KeyboardAvoidingView, Platform, ScrollView,
   TouchableWithoutFeedback, Keyboard,
 } from 'react-native';
-import { useState, useContext } from 'react';
-import { useRouter } from 'expo-router';
+import { useState, useContext, useCallback } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { AppContext } from './provider.js';
 import InputField from './components/InputField.js';
 import PrimaryButton from './components/PrimaryButton.js';
@@ -14,16 +14,15 @@ export default function Formulario() {
   const router = useRouter();
   const {
     salas, removerVaga, adicionarVaga, adicionarAoHistorico,
-    isDarkMode, toggleSwitchDarkMode,
-    usuarioLogado, logout, atualizarSalaUsuario,
+    isDarkMode, usuarioLogado, logout, atualizarSalaUsuario,
   } = useContext(AppContext);
 
-  const [motivo,       setMotivo]       = useState('');
-  const [salaDestino,  setSalaDestino]  = useState(null);
+  const [motivo, setMotivo] = useState('');
+  const [salaDestino, setSalaDestino] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [erros,        setErros]        = useState({});
+  const [erros, setErros] = useState({});
+  const [mensagemGlobal, setMensagemGlobal] = useState({ texto: '', tipo: '' });
 
-  // Sala atual sempre vem do perfil — nunca editável diretamente
   const salaAtualObj = salas.find(
     (s) => s.sala.toUpperCase() === (usuarioLogado?.sala ?? '').toUpperCase()
   ) ?? null;
@@ -32,12 +31,19 @@ export default function Formulario() {
     setMotivo('');
     setSalaDestino(null);
     setErros({});
+    setMensagemGlobal({ texto: '', tipo: '' });
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => limparFormulario();
+    }, [])
+  );
 
   const validar = () => {
     const e = {};
-    if (!salaDestino)   e.salaDestino = 'Selecione a sala de destino.';
-    if (!motivo.trim()) e.motivo      = 'Informe o motivo da troca.';
+    if (!salaDestino) e.salaDestino = 'Selecione a sala de destino.';
+    if (!motivo.trim()) e.motivo = 'Informe o motivo da troca.';
     if (salaAtualObj && salaDestino?.sala === salaAtualObj.sala)
       e.salaDestino = 'Destino deve ser diferente da sala atual.';
     if (salaDestino && salaDestino.vagas <= 0)
@@ -47,18 +53,20 @@ export default function Formulario() {
   };
 
   const processarTroca = () => {
+    setMensagemGlobal({ texto: '', tipo: '' });
     const chance = Math.random();
-    const motivosFalha = [
-      'Seu motivo não foi aceito.',
-      'Existem muitos alunos com interesse nessa sala.',
-      'Devido ao seu baixo desempenho acadêmico sua solicitação foi negada.',
-      'Atualmente a mudança de sala está fora do ar.',
-      'O coordenador do curso precisa validar esta troca manualmente.',
-      'Aluno já possui uma solicitação pendente.',
-    ];
-
+    
     if (chance > 0.7) {
-      Alert.alert('Solicitação Negada ❌', motivosFalha[Math.floor(Math.random() * motivosFalha.length)]);
+      const motivosFalha = [
+        'Seu motivo não foi aceito pela coordenação.',
+        'Limite de solicitações diárias atingido.',
+        'Desempenho acadêmico insuficiente para esta sala.',
+        'Sistema de validação offline no momento.',
+      ];
+      setMensagemGlobal({ 
+        texto: motivosFalha[Math.floor(Math.random() * motivosFalha.length)], 
+        tipo: 'erro' 
+      });
       return;
     }
 
@@ -67,19 +75,19 @@ export default function Formulario() {
     adicionarVaga(salaAtualObj.sala);
     removerVaga(salaDestino.sala);
     atualizarSalaUsuario(salaDestino.sala);
-
-    Alert.alert(
-      'Transferência aprovada! ✅',
-      `${nomeLogado} foi transferido(a) para ${salaDestino.sala.toUpperCase()}.\nMotivo: ${motivo}`
-    );
-    limparFormulario();
+    setMensagemGlobal({ 
+      texto: `Sucesso! Você foi transferido para ${salaDestino.sala.toUpperCase()}. ✅`, 
+      tipo: 'sucesso' 
+    });
+    setMotivo('');
+    setSalaDestino(null);
   };
 
   const enviarDados = () => {
     if (!validar()) return;
     Alert.alert(
       'Confirmar Solicitação',
-      `Trocar de ${salaAtualObj?.sala.toUpperCase()} para ${salaDestino.sala.toUpperCase()}?`,
+      `Deseja realmente trocar para a sala ${salaDestino.sala.toUpperCase()}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Confirmar', onPress: processarTroca },
@@ -90,7 +98,7 @@ export default function Formulario() {
   const handleLogout = () => {
     Alert.alert('Sair', 'Deseja encerrar sua sessão?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: () => { logout(); } },
+      { text: 'Sair', style: 'destructive', onPress: () => logout() },
     ]);
   };
 
@@ -106,65 +114,75 @@ export default function Formulario() {
           contentContainerStyle={[styles.container, { backgroundColor: bg, flexGrow: 1 }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Switch value={isDarkMode} onValueChange={toggleSwitchDarkMode} style={styles.switch} />
+          <Text style={styles.titulo}>Formulario para mudança</Text>
 
           <View style={styles.userCardWrapper}>
             <UserCard onLogout={handleLogout} />
           </View>
 
           <View style={styles.form}>
-
-            {/* Sala Atual — somente leitura, vem do perfil */}
-            <InputField
-              label="Sala Atual"
-              icon="📍"
-              value={salaAtualObj ? salaAtualObj.sala.toUpperCase() : '—'}
-              editable={false}
-              badgeTexto="seu perfil"
-            />
-
-            {/* Sala Destino — selecionável via modal */}
             <View style={styles.campoSala}>
               <Text style={styles.label}>Sala Destino</Text>
               <TouchableOpacity
-                style={[styles.seletorRow, erros.salaDestino && styles.seletorErro]}
+                style={[
+                  styles.seletorRow, 
+                  { backgroundColor: isDarkMode ? '#1A1A1A' : '#F3F4F6' },
+                  erros.salaDestino && styles.seletorErro
+                ]}
                 onPress={() => setModalVisible(true)}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.seletorTexto}>
-                  {salaDestino ? salaDestino.sala.toUpperCase() : 'Selecionar sala...'}
+                activeOpacity={0.7}>
+                <Text style={[styles.seletorTexto, { color: isDarkMode ? '#fff' : '#333' }]}>
+                  {salaDestino ? salaDestino.sala.toUpperCase() : 'Selecione uma sala...'}
                 </Text>
+                <Text style={{ color: '#ED145B' }}>▼</Text>
               </TouchableOpacity>
               {erros.salaDestino ? <Text style={styles.erroTexto}>{erros.salaDestino}</Text> : null}
             </View>
 
-            {/* Motivo */}
             <InputField
               label="Motivo da Troca"
               icon="📝"
               value={motivo}
-              onChangeText={(t) => { setMotivo(t); setErros((e) => ({ ...e, motivo: '' })); }}
-              placeholder="Explique o motivo"
+              onChangeText={(t) => { 
+                setMotivo(t); 
+                setErros((e) => ({ ...e, motivo: '' })); 
+                setMensagemGlobal({ texto: '', tipo: '' });
+              }}
+              placeholder="Descreva o motivo"
               erro={erros.motivo}
             />
 
             <View style={styles.botoes}>
-              <PrimaryButton label="Apagar" onPress={limparFormulario} color="#555" />
-              <PrimaryButton label="Enviar" onPress={enviarDados}      color="#0ed145" />
+              <PrimaryButton label="Limpar" onPress={limparFormulario} color="#6B7280" />
+              <PrimaryButton label="Solicitar Troca" onPress={enviarDados} color="#ED145B" />
             </View>
 
+            {mensagemGlobal.texto ? (
+              <View style={[
+                styles.statusBanner, 
+                { backgroundColor: mensagemGlobal.tipo === 'erro' ? '#FEE2E2' : '#DCFCE7' }
+              ]}>
+                <Text style={[
+                  styles.statusTexto, 
+                  { color: mensagemGlobal.tipo === 'erro' ? '#B91C1C' : '#15803D' }
+                ]}>
+                  {mensagemGlobal.texto}
+                </Text>
+              </View>
+            ) : null}
+
             <TouchableOpacity style={styles.linkSalas} onPress={() => router.push('/salas')}>
-              <Text style={styles.linkSalasTexto}>Ver lista de salas →</Text>
+              <Text style={styles.linkSalasTexto}>Explorar salas disponíveis →</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      {/* Modal de seleção — filtra a sala atual do usuário */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={[styles.modalConteudo, { backgroundColor: isDarkMode ? '#111' : '#fff' }]}>
-            <Text style={styles.modalTitulo}>Escolha a Sala Destino</Text>
+            <View style={styles.modalHeaderBar} />
+            <Text style={styles.modalTitulo}>Salas para Transferência</Text>
             <FlatList
               data={salas.filter(
                 (s) => s.sala.toUpperCase() !== (usuarioLogado?.sala ?? '').toUpperCase()
@@ -182,12 +200,22 @@ export default function Formulario() {
                     setModalVisible(false);
                   }}
                 >
-                  <Text style={styles.itemTexto}>{item.sala.toUpperCase()}</Text>
-                  <Text style={styles.itemVagas}>{item.vagas} vagas</Text>
+                  <View>
+                    <Text style={styles.itemTexto}>{item.sala.toUpperCase()}</Text>
+                    <Text style={styles.itemCapacidade}>Capacidade: {item.capacidade}</Text>
+                  </View>
+                  <View style={styles.itemVagasBadge}>
+                    <Text style={styles.itemVagasTexto}>{item.vagas} vagas</Text>
+                  </View>
                 </TouchableOpacity>
               )}
             />
-            <PrimaryButton label="Fechar" onPress={() => setModalVisible(false)} fullWidth />
+            <TouchableOpacity 
+              style={styles.modalBotaoFechar} 
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalBotaoFecharTexto}>CANCELAR</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -196,24 +224,47 @@ export default function Formulario() {
 }
 
 const styles = StyleSheet.create({
-  container:      { alignItems: 'center', paddingTop: 20, paddingBottom: 40 },
-  switch:         { position: 'absolute', top: 40, right: 20 },
-  userCardWrapper:{ marginTop: 50, marginBottom: 20 },
-  form:           { width: 300 },
-  label:          { color: '#ED145B', fontSize: 13, fontWeight: '700', marginBottom: 6, letterSpacing: 0.8, textTransform: 'uppercase' },
-  campoSala:      { marginBottom: 16 },
-  seletorRow:     { borderRadius: 8, padding: 14, backgroundColor: '#ED145B' },
-  seletorErro:    { borderWidth: 2, borderColor: '#fff' },
-  seletorTexto:   { color: '#fff', fontSize: 14 },
-  erroTexto:      { color: '#ED145B', fontSize: 12, marginTop: 4 },
-  botoes:         { flexDirection: 'row', gap: 12, marginTop: 4 },
-  linkSalas:      { marginTop: 24, alignItems: 'center' },
-  linkSalasTexto: { color: '#ED145B', fontSize: 16 },
-  modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.8)' },
-  modalConteudo:  { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, height: '55%', borderTopWidth: 2, borderColor: '#ED145B' },
-  modalTitulo:    { color: '#ED145B', fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  itemSala:       { padding: 15, borderBottomWidth: 1, borderBottomColor: '#ED145B22', flexDirection: 'row', justifyContent: 'space-between' },
-  itemSalaAtivo:  { backgroundColor: '#ED145B18', borderRadius: 8 },
-  itemTexto:      { color: '#ED145B', fontSize: 16, fontWeight: '700' },
-  itemVagas:      { color: '#ED145B', fontSize: 13, opacity: 0.7 },
+  container: { alignItems: 'center', paddingTop: 60, paddingBottom: 40 },
+  titulo: { fontSize: 20, color: '#ED145B', marginBottom: 20},
+  userCardWrapper: { marginBottom: 20 },
+  form: { width: 320 },
+  statusBanner: { padding: 14, borderRadius: 10, marginTop: 20, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
+  statusTexto: { textAlign: 'center', fontWeight: 'bold', fontSize: 14 },
+  label: { color: '#ED145B', fontSize: 12, fontWeight: '800', marginBottom: 8, textTransform: 'uppercase' },
+  campoSala: { marginBottom: 20 },
+  seletorRow: { 
+    borderRadius: 12, 
+    padding: 16, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ED145B44' 
+  },
+  seletorErro: { borderColor: '#ED145B', borderWidth: 2 },
+  seletorTexto: { fontSize: 15, fontWeight: '500' },
+  erroTexto: { color: '#ED145B', fontSize: 12, marginTop: 6, fontWeight: '600' },
+  botoes: { flexDirection: 'row', gap: 80, marginTop: 10 },
+  linkSalas: { marginTop: 30, alignItems: 'center' },
+  linkSalasTexto: { color: '#ED145B', fontSize: 15, fontWeight: '600', textDecorationLine: 'underline' },
+  modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.7)' },
+  modalConteudo: { borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 25, height: '60%' },
+  modalHeaderBar: { width: 40, height: 5, backgroundColor: '#ccc', borderRadius: 10, alignSelf: 'center', marginBottom: 20 },
+  modalTitulo: { color: '#ED145B', fontSize: 22, fontWeight: '900', marginBottom: 20, textAlign: 'center' },
+  itemSala: { 
+    paddingVertical: 18, 
+    paddingHorizontal: 10, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#eee', 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
+  },
+  itemSalaAtivo: { backgroundColor: '#ED145B10', borderRadius: 15 },
+  itemTexto: { color: '#ED145B', fontSize: 18, fontWeight: 'bold' },
+  itemCapacidade: { color: '#888', fontSize: 12 },
+  itemVagasBadge: { backgroundColor: '#ED145B', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  itemVagasTexto: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  modalBotaoFechar: { marginTop: 15, padding: 15, alignItems: 'center' },
+  modalBotaoFecharTexto: { color: '#666', fontWeight: 'bold', letterSpacing: 1 },
 });

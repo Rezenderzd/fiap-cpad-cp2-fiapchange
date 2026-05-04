@@ -1,17 +1,12 @@
-import { View, Text, StyleSheet, Switch} from 'react-native';
+import { View, Text, StyleSheet} from 'react-native';
 import { useContext } from 'react';
 import { AppContext } from './provider.js';
 
 export default function Historico() {
-    const { historico, isDarkMode, toggleSwitchDarkMode } = useContext(AppContext);
+    const { historico, isDarkMode } = useContext(AppContext);
 
     return(
         <View style={[styles.container, {backgroundColor: isDarkMode ? '#000' : '#fff'}]}>
-          <Switch
-            value = {isDarkMode}
-            onValueChange={toggleSwitchDarkMode}
-            style={styles.switch}
-          />
           <Text style = {styles.titulo}>Histórico de Troca</Text>
             <View>
             {historico.length === 0 ? (

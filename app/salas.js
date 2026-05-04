@@ -5,17 +5,11 @@ import { AppContext } from './provider.js';
 
 export default function Sobre() {
   const router = useRouter();
-  const { salas, totalAlunosGlobal, isDarkMode, toggleSwitchDarkMode, adicionarVaga, removerVaga } = useContext(AppContext);
+  const { salas, totalAlunosGlobal, isDarkMode, adicionarVaga, removerVaga } = useContext(AppContext);
 
   return (
     <View style={[styles.container, {backgroundColor: isDarkMode ? '#000' : '#fff'}]}>
-      <Switch
-        value = {isDarkMode}
-        onValueChange={toggleSwitchDarkMode}
-        style={styles.switch}
-      />
       <Text style={styles.titulo}>Salas Disponíveis</Text>
-      
       <ScrollView contentContainerStyle={styles.listaSalas}>
         {salas.map((item, index) => (
         <View key={index} style={[styles.cardSala, {backgroundColor: isDarkMode? "#1A1A1A": "#bbb"}]}>
@@ -68,9 +62,8 @@ const styles = StyleSheet.create({
     right: 20
   },
   titulo: { 
-    fontSize: 32, 
-    fontWeight: 'bold', 
-    marginBottom: 24, 
+    fontSize: 25, 
+    marginBottom: 20, 
     color: '#ED145B' 
   },
   listaSalas: { 
@@ -132,15 +125,15 @@ const styles = StyleSheet.create({
   },
   botaoAcao: {
     backgroundColor: '#ED145B',
-    width: 35,
-    height: 35,
+    width: 20,
+    height: 20,
     borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   textoBotao: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
   },
   });

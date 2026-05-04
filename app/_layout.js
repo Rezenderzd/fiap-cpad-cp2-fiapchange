@@ -5,8 +5,8 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
 import { AppContext, AppProvider } from './provider';
 import { useContext, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-
+import { View, ActivityIndicator, Switch } from 'react-native';
+ 
 export default function RootLayout() {
   return (
     <AppProvider>
@@ -14,32 +14,28 @@ export default function RootLayout() {
     </AppProvider>
   );
 }
-
-// Telas que NÃO exigem login
+ 
 const ROTAS_PUBLICAS = ['login', 'cadastro'];
-
+ 
 function AuthGuard() {
   const { usuarioLogado, authCarregado, isDarkMode } = useContext(AppContext);
   const segments = useSegments();
   const router   = useRouter();
-
+ 
   useEffect(() => {
-    if (!authCarregado) return; // aguarda o AsyncStorage carregar
-
+    if (!authCarregado) return;
+ 
     const rotaAtual   = segments[segments.length - 1] ?? '';
     const ehPublica   = ROTAS_PUBLICAS.includes(rotaAtual);
     const estaLogado  = !!usuarioLogado;
-
+ 
     if (!estaLogado && !ehPublica) {
-      // Tentou acessar área protegida sem login volta pro login
       router.replace('/login');
     } else if (estaLogado && ehPublica) {
-      // Já está logado e tentou acessar login/cadastro volta pra home
       router.replace('/');
     }
   }, [authCarregado, usuarioLogado, segments]);
-
-  // Enquanto o AsyncStorage ainda não terminou de carregar, mostra um loader
+ 
   if (!authCarregado) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#000' : '#fff' }}>
@@ -47,27 +43,29 @@ function AuthGuard() {
       </View>
     );
   }
-
+ 
   return <Layout />;
 }
-
+ 
 function Layout() {
-  const { isDarkMode, usuarioLogado } = useContext(AppContext);
-
-  const tabBarStyle      = { backgroundColor: isDarkMode ? '#000' : '#fff' };
-  const headerStyle      = { backgroundColor: isDarkMode ? '#000' : '#fff' };
-  const headerTitleStyle = { color: '#ED145B' };
-
+  const { isDarkMode, toggleSwitchDarkMode } = useContext(AppContext);
+ 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#ED145B',
-        tabBarStyle,
-        headerStyle,
-        headerTitleStyle,
+        tabBarStyle:      { backgroundColor: isDarkMode ? '#000' : '#fff' },
+        headerStyle:      { backgroundColor: isDarkMode ? '#000' : '#fff' },
+        headerTitleStyle: { color: '#ED145B' },
+        headerRight: () => (
+          <Switch
+            value={isDarkMode}
+            onValueChange={toggleSwitchDarkMode}
+            style={{ marginRight: 16 }}
+          />
+        ),
       }}
     >
-      {/* ── Tabs protegidas ─────────────────────────────────────── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -98,13 +96,11 @@ function Layout() {
           tabBarIcon: ({ color }) => <Feather name="book" size={24} color={color} />,
         }}
       />
-
-      {/* ── Telas públicas: sem ícone na tab bar ─────────────────── */}
+ 
       <Tabs.Screen name="login"    options={{ href: null, headerShown: false, title: 'Login' }} />
       <Tabs.Screen name="cadastro" options={{ href: null, headerShown: false, title: 'Cadastro' }} />
-
-      {/* ── Componentes dentro de app/components: esconder da tab bar ── */}
-      <Tabs.Screen name="components/InputField"   options={{ href: null, headerShown: false }} />
+ 
+      <Tabs.Screen name="components/InputField"    options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="components/PrimaryButton" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="components/UserCard"      options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="components/OccupancyBar"  options={{ href: null, headerShown: false }} />
