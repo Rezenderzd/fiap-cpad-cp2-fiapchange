@@ -61,17 +61,17 @@ O aplicativo utiliza o Provider para garantir que as atualizações de estado se
 
 ### 🖼️Gif do projeto em prática (Demonstração)
 <p align="center">
-<img src="./gifs-e-images/gif-cp1.gif">
+<img src="./gifs-e-images/untitled.gif">
 </p>
 
 <br> 
 
 ### 🐱‍👤📷 Alguns prints para melhor visualização
 <p align="center">
-  <img src="./gifs-e-images/print%20home.png" width="180" alt="Home" />
-  <img src="./gifs-e-images/print%20formulario.png" width="180" alt="Formulário" />
-  <img src="./gifs-e-images/print%20salas.png" width="180" alt="Salas" />
-  <img src="./gifs-e-images/historico.png" width="180" alt="Historico" />
+  <img src="./gifs-e-images/salasdisponiveis.png" width="180" alt="Salas disponiveis" />
+  <img src="./gifs-e-images/paginainicial.png" width="180" alt="Formulário" />
+  <img src="./gifs-e-images/Formulario.png" width="180" alt="Salas" />
+  <img src="./gifs-e-images/whitemode.png" width="180" alt="Historico" />
 </p>
 
 ### 💡 Decisões Técnicas
