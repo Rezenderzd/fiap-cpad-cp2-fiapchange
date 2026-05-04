@@ -20,6 +20,10 @@ export const AppProvider = ({ children }) => {
 
     useEffect(() => {
         const inicializar = async () => {
+            const dadosSalvos = await AsyncStorage.getItem('salas_data');
+            if (dadosSalvos) {
+                setSalas(JSON.parse(dadosSalvos));
+            }
             await carregarHistorico();
             const sessao = await AsyncStorage.getItem('sessao');
             if (sessao) setUsuarioLogado(JSON.parse(sessao));
@@ -64,25 +68,33 @@ export const AppProvider = ({ children }) => {
 
     // Salas
     const removerVaga = (salaDigitada) => {
-        setSalas((prev) =>
-            prev.map((item) =>
+        setSalas((prev) => {
+            const novasSalas = prev.map((item) =>
                 item.sala.toUpperCase().includes(salaDigitada.toUpperCase().trim())
                     ? { ...item, vagas: item.vagas - 1 }
                     : item
-            )
-        );
+            );
+            salvarSalas(novasSalas); 
+            return novasSalas;
+        });
     };
 
     const adicionarVaga = (salaDigitada) => {
-        setSalas((prev) =>
-            prev.map((item) =>
+        setSalas((prev) => {
+            const novasSalas = prev.map((item) =>
                 item.sala.toUpperCase().includes(salaDigitada.toUpperCase().trim())
                     ? { ...item, vagas: item.vagas + 1 }
                     : item
-            )
-        );
+            );
+            salvarSalas(novasSalas);
+            return novasSalas;
+        });
     };
 
+    const salvarSalas = async (novasSalas) => {
+        const jsonValue = JSON.stringify(novasSalas);
+        await AsyncStorage.setItem('salas_data', jsonValue); 
+};
     const totalAlunosGlobal = salas.reduce(
         (soma, item) => soma + (item.capacidade - item.vagas), 0
     );

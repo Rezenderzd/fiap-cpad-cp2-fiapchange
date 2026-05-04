@@ -5,7 +5,7 @@ import { AppContext } from './provider.js';
 
 export default function Sobre() {
   const router = useRouter();
-  const { salas, totalAlunosGlobal, isDarkMode, toggleSwitchDarkMode } = useContext(AppContext);
+  const { salas, totalAlunosGlobal, isDarkMode, toggleSwitchDarkMode, adicionarVaga, removerVaga } = useContext(AppContext);
 
   return (
     <View style={[styles.container, {backgroundColor: isDarkMode ? '#000' : '#fff'}]}>
@@ -18,11 +18,30 @@ export default function Sobre() {
       
       <ScrollView contentContainerStyle={styles.listaSalas}>
         {salas.map((item, index) => (
-          <View key={index} style={[styles.cardSala, {backgroundColor: isDarkMode? "#1A1A1A": "#bbb"}]}>
+        <View key={index} style={[styles.cardSala, {backgroundColor: isDarkMode? "#1A1A1A": "#bbb"}]}>
+          <View>
             <Text style={styles.salaTexto}>Sala: {item.sala}</Text>
             <Text style={styles.vagasTexto}>Vagas: {item.vagas}</Text>
           </View>
-        ))}
+
+          {/* NOVOS BOTÕES DE INTERAÇÃO */}
+          <View style={styles.botoesContainer}>
+            <TouchableOpacity 
+              style={styles.botaoAcao} 
+              onPress={() => adicionarVaga(item.sala)}
+            >
+              <Text style={styles.textoBotao}>+</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.botaoAcao} 
+              onPress={() => removerVaga(item.sala)}
+            >
+              <Text style={styles.textoBotao}>-</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
         {/* CONTADOR GLOBAL: Aparece embaixo da última sala */}
         <View style={styles.cardTotal}>
           <Text style={styles.totalLabel}>Total de aluno no 2º ano de Ciências da computação</Text>
@@ -106,5 +125,22 @@ const styles = StyleSheet.create({
     color: '#ED145B',
     fontSize: 30,
     fontWeight: 'bold'
+  },
+  botoesContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  botaoAcao: {
+    backgroundColor: '#ED145B',
+    width: 35,
+    height: 35,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textoBotao: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   });
