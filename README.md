@@ -61,7 +61,7 @@ O aplicativo utiliza o Provider para garantir que as atualizações de estado se
 
 ### 🖼️Gif do projeto em prática (Demonstração)
 <p align="center">
-<img src="./gifs-e-images/untitled.gif">
+<img src="./gifs-e-images/untitled.gif"width="300">
 </p>
 
 <br> 
