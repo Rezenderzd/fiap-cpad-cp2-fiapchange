@@ -116,6 +116,9 @@ O projeto utiliza um único `AppContext` (em `provider.js`) que centraliza toda 
 * `useState`: Utilizado para gerenciar dados locais, como os inputs do formulário e o controle de visibilidade (abrir/fechar) do Modal de histórico.
 * `useRouter`: Hook nativo do expo-router utilizado para gerenciar a navegação programática entre as telas (ex: redirecionar após preencher o formulário).
 
+### Diferencial Aplicado
+* O grupo optou por utilizar o modo escuro por ser um recurso usado para melhorar a usabilidade do usuário, visto que ele pode escolher a cor de fundo que mais agrada na hora de navegar pelo aplicativo, deixando mais acolhedor com as pessoas.
+
 #### Organização da Navegação:
 * Utilizamos a navegação baseada em arquivos do Expo Router. A tela principal serve como aba central, enquanto o formulário, a visualização de salas e o histórico são rotas secundarias. Entretanto, o usuário consegue apenas acessar essas páginas se estiver cadastrado, ocorrendo essa verificação como forma de prevenção para o usuário não conseguir executar outras tarefas.
 * Para a transmissão entre páginas, utilizamos o useContext, assim sendo possível passar as variáveis desejadas para todas as páginas.
