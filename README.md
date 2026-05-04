@@ -68,15 +68,48 @@ O aplicativo utiliza o Provider para garantir que as atualizações de estado se
 
 ### 🐱‍👤📷 Alguns prints para melhor visualização
 <p align="center">
+  <img src="./gifs-e-images/paginalogin.png" width="180" alt="Salas disponiveis" />
+  <img src="./gifs-e-images/paginacadastro.png" width="180" alt="Salas disponiveis" />
   <img src="./gifs-e-images/salasdisponiveis.png" width="180" alt="Salas disponiveis" />
-  <img src="./gifs-e-images/paginainicial.png" width="180" alt="Formulário" />
   <img src="./gifs-e-images/Formulario.png" width="180" alt="Salas" />
   <img src="./gifs-e-images/whitemode.png" width="180" alt="Historico" />
+  <img src="./gifs-e-images/historico.png" width="180" alt="Historico" />
 </p>
 
-### 💡 Decisões Técnicas
-#### Estrutura do Projeto: 
-* O projeto foi desenvolvido utilizando React Native com Expo Router. A arquitetura foi pensada para separar a lógica de dados da interface, centralizando o estado global em um Context Provider, o que facilita a manutenção e evita a passagem excessiva de props.
+### Estrutura do Projeto
+ 
+```
+app/
+├── _layout.js              # Layout raiz: AppProvider + AuthGuard + Tabs
+├── index.js                # Tela Home 
+├── formulario.js           # Tela de solicitação de troca de sala
+├── salas.js                # Tela de listagem de salas e ocupação
+├── historico.js            # Tela de histórico de trocas
+├── login.js                # Tela de login 
+├── cadastro.js             # Tela de cadastro 
+├── provider.js             # AppContext + AppProvider (estado global)
+└── components/
+    ├── InputField.js       # Campo de texto reutilizável com label, ícone e erro
+    ├── PrimaryButton.js    # Botão primário com suporte a variantes (fullWidth, small)
+    ├── OccupancyBar.js     # Barra de ocupação animada com cor dinâmica
+    └── UserCard.js         # Card do usuário logado com nome, sala e botão de logout
+```
+ 
+<!-- ### Context Criado
+ 
+O projeto utiliza um único `AppContext` (em `provider.js`) que centraliza toda a lógica da aplicação:
+ 
+- **Autenticação:** usuarioLogado, authCarregado, e as funções cadastrar, login, logout e atualizarSalaUsuario.
+- **Salas:** array salas com as funções adicionarVaga, removerVaga e salvarSalas (persiste no AsyncStorage).
+- **Histórico:** array historico com adicionarAoHistorico, salvarHistorico e carregarHistorico.
+- **Computed value:** totalAlunosGlobal calculado via `reduce()` diretamente no Provider, disponível em todas as telas.
+- **Tema:** `isDarkMode` e `toggleSwitchDarkMode`.
+### Como a Autenticação foi Implementada
+ 
+1. **Cadastro (`cadastro.js`):** O usuário preenche nome, e-mail, sala e senha. Após validação local, a função `cadastrar` do contexto salva o objeto do usuário nas chaves `usuario` e `sessao` do AsyncStorage e atualiza `usuarioLogado` no estado, logando automaticamente.
+2. **Login (`login.js`):** A função `login` recupera a chave `usuario` do AsyncStorage e compara e-mail (case-insensitive) e senha. Se correto, salva na chave `sessao` e atualiza o estado. Retorna `{ ok: true }` ou `{ ok: false, mensagem }` para a UI tratar com `Alert`.
+3. **Restauração de sessão:** No `useEffect` de inicialização do `AppProvider`, a chave `sessao` é lida do AsyncStorage. Se existir, `usuarioLogado` é populado e o usuário não precisa fazer login novamente.
+4. **Logout:** Remove a chave `sessao` do AsyncStorage e define `usuarioLogado` como `null`, o que dispara o `AuthGuard` a redirecionar para `/login`. -->
 
 #### Hooks Utilizados:
 * `useContext`: O principal pilar do app, usado para compartilhar o histórico de trocas e a lista de salas entre todas as telas de forma síncrona.
@@ -84,8 +117,10 @@ O aplicativo utiliza o Provider para garantir que as atualizações de estado se
 * `useRouter`: Hook nativo do expo-router utilizado para gerenciar a navegação programática entre as telas (ex: redirecionar após preencher o formulário).
 
 #### Organização da Navegação:
-* Utilizamos a navegação baseada em arquivos do Expo Router. A tela principal serve como aba central, enquanto o formulário e a visualização de salas são rotas secundarias. Para o histórico, optamos por um Modal sobreposto na Home.
-
+* Utilizamos a navegação baseada em arquivos do Expo Router. A tela principal serve como aba central, enquanto o formulário, a visualização de salas e o histórico são rotas secundarias. Entretanto, o usuário consegue apenas acessar essas páginas se estiver cadastrado, ocorrendo essa verificação como forma de prevenção para o usuário não conseguir executar outras tarefas.
+* Para a transmissão entre páginas, utilizamos o useContext, assim sendo possível passar as variáveis desejadas para todas as páginas.
+* Perante a autenticação, se o usuário tentar passar para outras páginas sem realizar o cadastro, o aplicativo não permite essa mudança, apenas permitindo quando o usuário entra na sua conta. Além disso, no formulário ele apenas pode mudar a si mesmo de sala, ficando cadastrado seu nome e sala, evitando que outra pessoa altere um aluno aleatório de sala.
+* O AsyncStorage foi implementado para salvar o histórico da mudança das salas, a quantidade de vagas presentes em cada uma e o usuário cadastrado. Cada um desses atributos foi salvo pelas respectivas chaves de acesso: historico, salas_data, sessao. O armazenamento de usuario é feito para validar as credenciais no login e confirmar se é permitido o cadastro/login da pessoa.
 <br>
 
 ### 🚀 Próximos Passos
@@ -109,4 +144,4 @@ Pedimos para IA gerar algumas sugestões de melhora para o projeto futuramente.
 
 563567 Raphael Mischiatti de Souza
 
-Desenvolvido para o CP1 - Faculdade de Informática e Administração Paulista (FIAP).
+Desenvolvido para o CP1 e aprimorado para a CP2 - Faculdade de Informática e Administração Paulista (FIAP).
